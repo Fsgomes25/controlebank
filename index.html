@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<!-- saved from url=(0069)file:///C:/Users/DELL/OneDrive/2025/TEMP/controle_cartoes_app_v4.html -->
+<html lang="pt-BR"><head>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#0b0d12">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controle de Cartões — App</title>
+<style>
+  :root{
+    --bg:#0b0d12;
+    --card:#141823;
+    --muted:#8a93a6;
+    --text:#e6ebff;
+    --accent:#4da3ff;
+    --good:#1fbf75;
+    --warn:#ffc857;
+    --bad:#ff6b6b;
+    --border:#232a3a;
+    --card2:#0f1422;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;
+    color:var(--text);
+    background:linear-gradient(180deg,#0a0e16,#0d1220 40%,#0a0e16);
+  }
+  header{
+    position:sticky; top:0; z-index:10;
+    backdrop-filter: blur(6px);
+    background:rgba(13,18,32,.7);
+    border-bottom:1px solid var(--border);
+  }
+  .wrap{max-width:1100px; margin:0 auto; padding:14px 16px;}
+  h1{font-size:20px; margin:0 0 6px; letter-spacing:.3px}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .toolbar > *{margin:4px 0}
+  input[type="search"], select, .btn, input[type="date"], input[type="number"], input[type="text"]{
+    background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:10px;
+    padding:10px 12px; outline:none;
+  }
+  input[type="search"]{min-width:220px}
+  .btn{
+    cursor:pointer; font-weight:600; border:1px solid transparent;
+    background:linear-gradient(180deg,#2b6ad6,#1650b8);
+    box-shadow:0 8px 18px rgba(34,114,255,.15), inset 0 0 0 1px rgba(255,255,255,.06);
+    transition:.15s transform ease;
+  }
+  .btn.secondary{background:#1a2134; border-color:#2a3550; font-weight:500}
+  .btn.ghost{background:transparent; border-color:var(--border); color:#cbd6ff}
+  .btn:hover{transform:translateY(-1px)}
+  .grid{max-width:1100px; margin:18px auto; padding:0 16px}
+  .cards{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px}
+  .kpi{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px}
+  .kpi .label{color:var(--muted); font-size:12px}
+  .kpi .value{font-size:22px; font-weight:700; margin-top:4px}
+  .kpi.good .value{color:var(--good)}
+  .kpi.warn .value{color:var(--warn)}
+  .kpi.bad .value{color:var(--bad)}
+  .table{
+    margin-top:12px; background:var(--card); border:1px solid var(--border);
+    border-radius:16px; overflow:auto;
+  }
+  table{width:100%; border-collapse:separate; border-spacing:0}
+  thead th{
+    position:sticky; top:0; background:#12182a; z-index:2;
+    text-align:left; font-weight:600; color:#cbd6ff; font-size:12px; letter-spacing:.3px;
+    border-bottom:1px solid var(--border);
+    padding:10px 12px;
+  }
+  tbody td{border-bottom:1px dashed #1e2640; padding:10px 12px; vertical-align:middle}
+  tbody tr:hover{background:#0f1527}
+  td .muted{color:var(--muted); font-size:12px}
+  .pill{padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:#10162a; font-size:12px}
+  .number{text-align:right; white-space:nowrap}
+  .avail.negative{color:var(--bad); font-weight:700}
+  .actions{display:flex; gap:8px}
+  .mini{padding:6px 10px; border-radius:10px; font-size:12px}
+  tfoot td{padding:12px; font-weight:700}
+  .note{color:var(--muted); font-size:12px}
+  .status-badge{padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid var(--border);}
+  .st-ABERTO{background:#10162a; color:#bcd3ff}
+  .st-A\ PAGAR{background:#2a1b0f; color:#ffd9a6; border-color:#513618}
+  .st-PAGO{background:#0d1f17; color:#b7f5d2; border-color:#1e5b45}
+  .fluxo{display:flex; gap:8px}
+  .fluxo .tag{display:inline-flex; align-items:center; gap:6px}
+  .tag small{opacity:.8}
+
+  /* Dialog - redesigned */
+  dialog{border:none; padding:0; border-radius:18px; background:var(--card); color:var(--text); width:min(900px,96vw)}
+  dialog::backdrop{background:rgba(3,8,18,.6)}
+  .dlg-head{padding:14px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center}
+  .dlg-title{display:flex; align-items:center; gap:10px}
+  .dlg-body{padding:16px 18px; display:grid; gap:14px}
+  .section{border:1px solid var(--border); background:#11172a; border-radius:14px; padding:12px}
+  .section h3{margin:0 0 10px; font-size:13px; color:#cbd6ff; letter-spacing:.3px; text-transform:uppercase}
+  .row{display:grid; grid-template-columns:repeat(12,1fr); gap:12px}
+  .col-12{grid-column:span 12} .col-8{grid-column:span 8} .col-6{grid-column:span 6} .col-4{grid-column:span 4} .col-3{grid-column:span 3} .col-2{grid-column:span 2}
+  .field{display:flex; flex-direction:column; gap:6px}
+  .field label{font-size:12px; color:#9fb2ff}
+  .input{display:flex; align-items:center; gap:8px; background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:0 10px}
+  .input input, .input select{flex:1; background:transparent; border:0; padding:10px 0; color:var(--text)}
+  .addon{font-size:12px; color:#b8c4ff; opacity:.9}
+  .hint{font-size:11px; color:var(--muted)}
+  .dlg-foot{padding:14px 18px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end}
+  @media (max-width:760px){
+    .row{grid-template-columns:repeat(6,1fr)}
+    .col-8{grid-column:span 6}
+    .col-6{grid-column:span 6}
+    .col-4{grid-column:span 6}
+    .col-3{grid-column:span 3}
+    .col-2{grid-column:span 3}
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Controle de Cartões</h1>
+      <div class="toolbar">
+        <input id="q" type="search" placeholder="Consultar cartão…">
+        <select id="mesRef"><option value="2025-05-01">maio de 2025</option><option value="2025-06-01">junho de 2025</option><option value="2025-07-01">julho de 2025</option><option value="2025-08-01">agosto de 2025</option><option value="2025-09-01">setembro de 2025</option><option value="2025-10-01">outubro de 2025</option><option value="2025-11-01">novembro de 2025</option></select>
+        <button class="btn" id="btnAdd">+ Novo cartão</button>
+        <button class="btn secondary" id="btnExport">Exportar JSON</button>
+        <label class="btn ghost" for="imp" style="cursor:pointer">Importar JSON<input id="imp" type="file" accept="application/json" hidden=""></label>
+        <span class="note">Disponível = Limite – (Fatura (se não PAGO) + Futuras)</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="grid">
+    <div class="cards">
+      <div class="kpi" id="kLimite">
+        <div class="label">Limite total</div>
+        <div class="value">R$&nbsp;50.936,19</div>
+      </div>
+      <div class="kpi" id="kComprometido">
+        <div class="label">Comprometido (Fatura + Futuras)</div>
+        <div class="value">R$&nbsp;8.824,72</div>
+      </div>
+      <div class="kpi good" id="kDisponivel">
+        <div class="label">Disponível total</div>
+        <div class="value">R$&nbsp;42.111,47</div>
+      </div>
+      <div class="kpi" id="kUso">
+        <div class="label">% uso do limite</div>
+        <div class="value">17%</div>
+      </div>
+    </div>
+
+    <div class="table" id="tblWrap" style="display: block;">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th style="min-width:160px">Cartão</th>
+            <th class="number">Limite</th>
+            <th class="number">Fatura atual</th>
+            <th class="number">Parcelas futuras</th>
+            <th class="number">Disponível</th>
+            <th style="min-width:120px">Situação</th>
+            <th style="min-width:220px">Fluxo</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="body"><tr>
+      <td><div>RECARGAPAY</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;527,19</td>
+      <td class="number">R$&nbsp;89,94</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;527,19</td>
+      <td><span class="status-badge st-PAGO">PAGO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 24/09/2025</span>
+            <span class="pill tag"><small>V</small> 01/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="qu5v5fgb">Editar</button>
+      </td></tr><tr>
+      <td><div>PORTO 1118</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;500,00</td>
+      <td class="number">R$&nbsp;60,00</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;440,00</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 03/10/2025</span>
+            <span class="pill tag"><small>V</small> 10/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="r9uvomk4">Editar</button>
+      </td></tr><tr>
+      <td><div>PLAYBANK</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;1.200,00</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;1.200,00</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 02/10/2025</span>
+            <span class="pill tag"><small>V</small> 10/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="9d0xadjs">Editar</button>
+      </td></tr><tr>
+      <td><div>ARCOMIX</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;1.755,00</td>
+      <td class="number">R$&nbsp;725,92</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;1.029,08</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 30/09/2025</span>
+            <span class="pill tag"><small>V</small> 10/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="qigv0uez">Editar</button>
+      </td></tr><tr>
+      <td><div>PORTO 3110</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;1.800,00</td>
+      <td class="number">R$&nbsp;342,10</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;1.457,90</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 03/10/2025</span>
+            <span class="pill tag"><small>V</small> 10/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="lc9xw6bf">Editar</button>
+      </td></tr><tr>
+      <td><div>ÁGUIA BRANCA</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;3.861,00</td>
+      <td class="number">R$&nbsp;1.592,73</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;2.268,27</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 30/09/2025</span>
+            <span class="pill tag"><small>V</small> 10/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="ie8vcuje">Editar</button>
+      </td></tr><tr>
+      <td><div>MEILUZ</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;3.000,00</td>
+      <td class="number">R$&nbsp;635,40</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;2.364,60</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 03/10/2025</span>
+            <span class="pill tag"><small>V</small> 10/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="xr0ezunn">Editar</button>
+      </td></tr><tr>
+      <td><div>AMAZON</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;4.000,00</td>
+      <td class="number">R$&nbsp;57,80</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;3.942,20</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 25/09/2025</span>
+            <span class="pill tag"><small>V</small> 10/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="5rbrxcja">Editar</button>
+      </td></tr><tr>
+      <td><div>VESTCASA</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;2.363,00</td>
+      <td class="number">R$&nbsp;1.098,00</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;1.265,00</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 04/10/2025</span>
+            <span class="pill tag"><small>V</small> 10/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="v5r13knf">Editar</button>
+      </td></tr><tr>
+      <td><div>WILL BANK</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;500,00</td>
+      <td class="number">R$&nbsp;23,90</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;476,10</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 06/10/2025</span>
+            <span class="pill tag"><small>V</small> 10/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="iq2o017e">Editar</button>
+      </td></tr><tr>
+      <td><div>CARREFOUR</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;14.380,00</td>
+      <td class="number">R$&nbsp;287,99</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;14.092,01</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 04/10/2025</span>
+            <span class="pill tag"><small>V</small> 11/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="klgwdvea">Editar</button>
+      </td></tr><tr>
+      <td><div>MAIS</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;7.090,00</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;7.090,00</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 02/10/2025</span>
+            <span class="pill tag"><small>V</small> 15/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="fkwhkyc7">Editar</button>
+      </td></tr><tr>
+      <td><div>MAGAZINE LUIZA</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;2.700,00</td>
+      <td class="number">R$&nbsp;2.219,80</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;480,20</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 09/10/2025</span>
+            <span class="pill tag"><small>V</small> 16/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="2dm8c15j">Editar</button>
+      </td></tr><tr>
+      <td><div>ITAÚ MÚLTIPLO</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;200,00</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;200,00</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 10/10/2025</span>
+            <span class="pill tag"><small>V</small> 17/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="8qzwhnru">Editar</button>
+      </td></tr><tr>
+      <td><div>NUBANK JURÍDICA</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;3.100,00</td>
+      <td class="number">R$&nbsp;1.317,14</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;1.782,86</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 10/10/2025</span>
+            <span class="pill tag"><small>V</small> 17/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="vx7lsn02">Editar</button>
+      </td></tr><tr>
+      <td><div>NUBANK FÍSICA</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;700,00</td>
+      <td class="number">R$&nbsp;438,94</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;261,06</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 10/10/2025</span>
+            <span class="pill tag"><small>V</small> 17/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="9rkc7m2w">Editar</button>
+      </td></tr><tr>
+      <td><div>ESPERANÇA</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;1.170,00</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;1.170,00</td>
+      <td><span class="status-badge st-ABERTO">ABERTO</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 14/10/2025</span>
+            <span class="pill tag"><small>V</small> 20/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="rkq2kiro">Editar</button>
+      </td></tr><tr>
+      <td><div>CASAS BAHIA</div>
+          <div class="muted">Fonte: —</div></td>
+      <td class="number">R$&nbsp;2.090,00</td>
+      <td class="number">R$&nbsp;25,00</td>
+      <td class="number">R$&nbsp;0,00</td>
+      <td class="number avail ">R$&nbsp;2.065,00</td>
+      <td><span class="status-badge st-A\ PAGAR">A PAGAR</span></td>
+      <td><div class="fluxo">
+            <span class="pill tag"><small>F</small> 24/09/2025</span>
+            <span class="pill tag"><small>V</small> 08/10/2025</span>
+          </div></td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="4k29jnn3">Editar</button>
+      </td></tr></tbody>
+        <tfoot>
+          <tr>
+            <td>Total</td>
+            <td class="number" id="tLimite">R$&nbsp;50.936,19</td>
+            <td class="number" id="tFatura">R$&nbsp;8.914,66</td>
+            <td class="number" id="tFuturas">R$&nbsp;0,00</td>
+            <td class="number" id="tDisp">R$&nbsp;42.111,47</td>
+            <td colspan="3"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div id="empty" class="empty" style="display:none">Nenhum cartão cadastrado.</div>
+  </section>
+
+  <dialog id="dlg">
+    <form method="dialog">
+      <div class="dlg-head">
+        <div class="dlg-title">
+          <strong id="dlgTitle">Editar cartão</strong>
+        </div>
+        <button class="btn ghost mini" value="cancel">Fechar</button>
+      </div>
+      <div class="dlg-body">
+        <input type="hidden" id="id" value="4k29jnn3">
+
+        <div class="section">
+          <h3>Identificação</h3>
+          <div class="row">
+            <div class="field col-8">
+              <label>Cartão</label>
+              <div class="input"><input id="nome" type="text" required=""></div>
+            </div>
+            <div class="field col-4">
+              <label>Situação</label>
+              <div class="input"><select id="situacao">
+                <option>ABERTO</option>
+                <option>A PAGAR</option>
+                <option>PAGO</option>
+              </select></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Valores</h3>
+          <div class="row">
+            <div class="field col-4">
+              <label>Limite</label>
+              <div class="input"><span class="addon">R$</span><input id="limite" type="text" inputmode="decimal" placeholder="0,00"></div>
+            </div>
+            <div class="field col-4">
+              <label>Fatura atual</label>
+              <div class="input"><span class="addon">R$</span><input id="fatura" type="text" inputmode="decimal" placeholder="0,00"></div>
+            </div>
+            <div class="field col-4">
+              <label>Parcelas futuras</label>
+              <div class="input"><span class="addon">R$</span><input id="futuras" type="text" inputmode="decimal" placeholder="0,00"></div>
+            </div>
+            <div class="field col-12">
+              <label>Fonte / Observação</label>
+              <div class="input"><input id="fonte" type="text" placeholder="opcional"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Fluxo (Fechamento e Vencimento)</h3>
+          <div class="row">
+            <div class="field col-3">
+              <label>Fech. padrão</label>
+              <div class="input"><input id="fechPadrao" type="number" min="1" max="31" placeholder="24"><span class="addon">dia</span></div>
+            </div>
+            <div class="field col-3">
+              <label>Venc. padrão</label>
+              <div class="input"><input id="vencPadrao" type="number" min="1" max="31" placeholder="1"><span class="addon">dia</span></div>
+            </div>
+            <div class="field col-3">
+              <label>Fech. do mês</label>
+              <div class="input"><input id="fechMes" type="date"></div>
+            </div>
+            <div class="field col-3">
+              <label>Venc. do mês</label>
+              <div class="input"><input id="vencMes" type="date"></div>
+            </div>
+          </div>
+          <div class="hint">Use a data do mês quando for diferente do padrão. O app é timezone-safe (não altera o dia digitado).</div>
+        </div>
+
+        <div class="section">
+          <h3>Simulador</h3>
+          <div class="row">
+            <div class="field col-6">
+              <label>E se eu comprar…</label>
+              <div class="input"><span class="addon">R$</span><input id="simula" type="text" inputmode="decimal" placeholder="0,00"></div>
+            </div>
+            <div class="field col-6">
+              <label>Resultado</label>
+              <div class="input"><input id="simulaOut" type="text" disabled="" placeholder="Disponível após a compra" title=""></div>
+            </div>
+          </div>
+          <div class="hint">Dica: use apenas números e vírgula. Ex.: 2.500,75</div>
+        </div>
+
+      </div>
+      <div class="dlg-foot">
+        <button class="btn ghost" id="btnDel" type="button" style="display: inline-flex;">Remover</button>
+        <button class="btn" id="btnSave" value="default">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+<script>
+const $$ = s => document.querySelector(s);
+const $all = s => Array.from(document.querySelectorAll(s));
+const BRL = v => (isNaN(v)?'—':v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+const pBRL = s => {
+  if(!s) return 0;
+  s = (''+s).replace(/[^\d,,-.]/g,'').replace(/\./g,'').replace(',', '.');
+  const n = parseFloat(s);
+  return isNaN(n)?0:n;
+};
+const pct = (a,b)=> b>0? (a/b*100):0;
+const storeKey = "cartoes.app.v4";
+let model = load() || seed();
+let filtro = "";
+
+function seed(){
+  return {
+    mesRef: firstOfMonthISO(new Date()),
+    cards: [
+      {id: uid(), nome:"RECARGAPAY", limite:516.69, fatura:89.94, futuras:0,
+       fonte:"", fechPadrao:24, vencPadrao:1, fechMes:"", vencMes:"", situacao:"ABERTO"}
+    ]
+  };
+}
+function uid(){ return Math.random().toString(36).slice(2,10) }
+function firstOfMonthISO(d){ return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10) }
+function save(){ localStorage.setItem(storeKey, JSON.stringify(model)); }
+function load(){ try{ return JSON.parse(localStorage.getItem(storeKey)||""); }catch(e){ return null; } }
+
+// ===== Timezone-safe date helpers =====
+function parseISOAsLocal(iso){
+  if(!iso) return null;
+  const [y,m,d] = iso.split('-').map(x=>parseInt(x,10));
+  return new Date(y, (m||1)-1, d||1);
+}
+function fmtLocal(iso){
+  if(!iso) return "—";
+  const d = parseISOAsLocal(iso);
+  return d.toLocaleDateString('pt-BR');
+}
+
+function compute(c){
+  const faturaConsiderada = (c.situacao==="PAGO") ? 0 : (c.fatura||0);
+  const comprometido = faturaConsiderada + (c.futuras||0);
+  const disponivel = (c.limite||0) - comprometido;
+  return {comprometido, disponivel, faturaConsiderada};
+}
+
+function render(){
+  // KPIs + totals
+  const cards = model.cards.filter(c => c.nome.toLowerCase().includes(filtro));
+  const totals = cards.reduce((acc,c)=>{
+    const {comprometido, disponivel} = compute(c);
+    acc.limite += c.limite||0;
+    acc.fatura += c.fatura||0;
+    acc.futuras += c.futuras||0;
+    acc.disponivel += disponivel;
+    acc.comprometido += comprometido;
+    return acc;
+  }, {limite:0,fatura:0,futuras:0,disponivel:0,comprometido:0});
+
+  $("#kLimite .value").textContent = BRL(totals.limite);
+  $("#kComprometido .value").textContent = BRL(totals.comprometido);
+  $("#kDisponivel .value").textContent = BRL(totals.disponivel);
+  const p = Math.round(pct(totals.comprometido, totals.limite));
+  $("#kUso .value").textContent = isFinite(p)? (p+"%"): "—";
+  $("#kDisponivel").classList.toggle("good", totals.disponivel>0);
+  $("#kDisponivel").classList.toggle("bad", totals.disponivel<0);
+
+  // table
+  const body = $("#body");
+  body.innerHTML = "";
+  if(cards.length===0){
+    $("#empty").style.display = "block";
+    $("#tblWrap").style.display = "none";
+  } else {
+    $("#empty").style.display = "none";
+    $("#tblWrap").style.display = "block";
+  }
+  cards.forEach(c=> {
+    const {disponivel} = compute(c);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><div>${esc(c.nome)}</div>
+          <div class="muted">Fonte: ${esc(c.fonte||"—")}</div></td>
+      <td class="number">${BRL(c.limite)}</td>
+      <td class="number">${BRL(c.fatura)}</td>
+      <td class="number">${BRL(c.futuras)}</td>
+      <td class="number avail ${disponivel<0?"negative":""}">${BRL(disponivel)}</td>
+      <td><span class="status-badge st-${(c.situacao||'ABERTO').replace(' ','\\ ')}">${c.situacao||'ABERTO'}</span></td>
+      <td>${fluxoBadges(c)}</td>
+      <td class="actions">
+        <button class="btn mini secondary" data-edit="${c.id}">Editar</button>
+      </td>`;
+    body.appendChild(tr);
+  });
+
+  $("#tLimite").textContent = BRL(totals.limite);
+  $("#tFatura").textContent = BRL(totals.fatura);
+  $("#tFuturas").textContent = BRL(totals.futuras);
+  $("#tDisp").textContent = BRL(totals.disponivel);
+}
+function $(s){ return document.querySelector(s); }
+function esc(s){ return (s??"").toString().replace(/[&<>"]/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[m])); }
+
+function fluxoBadges(c){
+  const f = c.fechMes ? fmtLocal(c.fechMes) : (c.fechPadrao? ("dia "+c.fechPadrao): "—");
+  const v = c.vencMes ? fmtLocal(c.vencMes) : (c.vencPadrao? ("dia "+c.vencPadrao): "—");
+  return `<div class="fluxo">
+            <span class="pill tag"><small>F</small> ${f}</span>
+            <span class="pill tag"><small>V</small> ${v}</span>
+          </div>`;
+}
+
+function openDlg(card){
+  $("#dlg").returnValue="";
+  $("#dlgTitle").textContent = card? "Editar cartão" : "Novo cartão";
+  $("#btnDel").style.display = card? "inline-flex":"none";
+  $("#id").value = card?.id || "";
+  $("#nome").value = card?.nome || "";
+  $("#situacao").value = card?.situacao || "ABERTO";
+  $("#limite").value = fmtBRL(card?.limite);
+  $("#fatura").value = fmtBRL(card?.fatura);
+  $("#futuras").value = fmtBRL(card?.futuras);
+  $("#fonte").value  = card?.fonte || "";
+  $("#fechPadrao").value = card?.fechPadrao||"";
+  $("#vencPadrao").value = card?.vencPadrao||"";
+  $("#fechMes").value = card?.fechMes||"";
+  $("#vencMes").value = card?.vencMes||"";
+  $("#simula").value = "";
+  $("#simulaOut").value = "";
+  $("#dlg").showModal();
+}
+function fmtBRL(v){ return v!=null && v!=="" ? v.toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}) : ""; }
+
+function readDlg(){
+  return {
+    id: $("#id").value || uid(),
+    nome: $("#nome").value.trim(),
+    limite: pBRL($("#limite").value),
+    fatura: pBRL($("#fatura").value),
+    futuras: pBRL($("#futuras").value),
+    fonte: $("#fonte").value.trim(),
+    fechPadrao: parseInt($("#fechPadrao").value)||null,
+    vencPadrao: parseInt($("#vencPadrao").value)||null,
+    fechMes: $("#fechMes").value || "",
+    vencMes: $("#vencMes").value || "",
+    situacao: $("#situacao").value || "ABERTO"
+  };
+}
+
+$("#btnAdd").addEventListener("click", ()=> openDlg(null));
+$("#body").addEventListener("click", e=>{
+  const id = e.target?.dataset?.edit;
+  if(!id) return;
+  const c = model.cards.find(x=>x.id===id);
+  openDlg(c);
+});
+
+$("#btnSave").addEventListener("click", (e)=>{
+  e.preventDefault();
+  const n = readDlg();
+  if(!n.nome){ alert("Informe o nome do cartão."); return; }
+  const i = model.cards.findIndex(x=>x.id===n.id);
+  if(i>=0) model.cards[i]=n; else model.cards.push(n);
+  save(); render(); $("#dlg").close();
+});
+$("#btnDel").addEventListener("click", ()=>{
+  const id = $("#id").value;
+  if(!id) return;
+  if(confirm("Remover este cartão?")){
+    model.cards = model.cards.filter(c=>c.id!==id);
+    save(); render(); $("#dlg").close();
+  }
+});
+
+$("#q").addEventListener("input", e=>{ filtro = e.target.value.trim().toLowerCase(); render(); });
+
+// Mes de referência
+const sel = $("#mesRef");
+function fillMonths(){
+  sel.innerHTML="";
+  const base = new Date(model.mesRef || firstOfMonthISO(new Date()));
+  for(let i=-3;i<=3;i++){
+    const d = new Date(base.getFullYear(), base.getMonth()+i, 1);
+    const opt = document.createElement("option");
+    opt.value = firstOfMonthISO(d);
+    opt.textContent = d.toLocaleDateString('pt-BR',{month:'long', year:'numeric'});
+    if(i===0) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+sel.addEventListener("change", ()=>{ model.mesRef = sel.value; save(); });
+fillMonths();
+
+// Export/Import
+$("#btnExport").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(model,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "cartoes_model.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+$("#imp").addEventListener("change", async (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  try{
+    const txt = await file.text();
+    const data = JSON.parse(txt);
+    if(!data.cards) throw new Error("Formato inválido");
+    model = data; save(); fillMonths(); render();
+  }catch(err){ alert("Erro ao importar: "+err.message); }
+  e.target.value = "";
+});
+
+// Simulador
+$("#simula").addEventListener("input", ()=>{
+  const v = pBRL($("#simula").value);
+  const base = readDlg();
+  const fConsiderada = (base.situacao==="PAGO") ? 0 : base.fatura;
+  const dispo = (base.limite) - (fConsiderada + base.futuras + v);
+  $("#simulaOut").value = isFinite(dispo) ? BRL(dispo) : "";
+  $("#simulaOut").title = "Disponível após a compra: "+BRL(dispo);
+});
+
+render();
+</script>
+
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js').catch(console.error);
+  });
+}
+</script>
+</body></html>
